@@ -1,0 +1,12 @@
+{
+  "name": "echron/packagist-uac",
+  "description": "Set up a private packagist with user access control",
+  "require": {
+    "composer/satis": "^1.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Echron\\Satis\\UAC\\": "src/"
+    }
+  }
+}

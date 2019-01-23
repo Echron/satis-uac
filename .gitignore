@@ -1,0 +1,6 @@
+/vendor/
+cert
+/pub/
+auth.json
+.htpasswd
+
