@@ -67,7 +67,7 @@ class Application
 
         $pubFolder = $path . DIRECTORY_SEPARATOR . 'pub' . DIRECTORY_SEPARATOR;
 
-        return $pubFolder . $endPoint->name;
+        return $pubFolder . $this->sanitizeFilename($endPoint->name);
     }
 
     function generateHtaccess(EndPoint $endPoint)
@@ -76,7 +76,7 @@ class Application
 
         $htaccessPath = $this->getDirectory($endPoint) . DIRECTORY_SEPARATOR . '.htaccess';
 
-        $htpasswdPath = $path . DIRECTORY_SEPARATOR . '.htpasswd.' . $endPoint->name;
+        $htpasswdPath = $path . DIRECTORY_SEPARATOR . '.htpasswd.' . $this->sanitizeFilename($endPoint->name);
 
         $htaccess = 'AuthType Basic' . PHP_EOL;
         $htaccess .= 'AuthName "Restricted Content"' . PHP_EOL;
@@ -119,8 +119,8 @@ class Application
             /** @var EndPointUser $user */
             foreach ($users as $user) {
                 $htaccess .= 'RewriteCond %{LA-U:REMOTE_USER} ' . $user->username . PHP_EOL;
-                $htaccess .= 'RewriteCond %{REQUEST_URI} !^/' . $endPoint->name . '/.*' . PHP_EOL;
-                $htaccess .= 'RewriteRule ^(.*)$ /' . $endPoint->name . '/$1  [R,L]' . PHP_EOL;
+                $htaccess .= 'RewriteCond %{REQUEST_URI} !^/' . $this->sanitizeFilename($endPoint->name) . '/.*' . PHP_EOL;
+                $htaccess .= 'RewriteRule ^(.*)$ /' . $this->sanitizeFilename($endPoint->name) . '/$1  [R,L]' . PHP_EOL;
                 $htaccess .= '' . PHP_EOL;
             }
         }
@@ -154,6 +154,15 @@ class Application
         }
 
         return false;
+    }
+
+    private function sanitizeFilename(string $filename): string
+    {
+        $filename = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
+        $filename = mb_ereg_replace("([\.]{2,})", '', $filename);
+        $filename = \strtolower($filename);
+
+        return $filename;
     }
 
 }
