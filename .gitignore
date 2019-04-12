@@ -2,5 +2,4 @@
 cert
 /pub/
 auth.json
-.htpasswd
-
+.htpasswd*
