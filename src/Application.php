@@ -158,11 +158,7 @@ class Application
 
     private function sanitizeFilename(string $filename): string
     {
-        $filename = mb_ereg_replace("([^\w\s\d\-_~,;\[\]\(\).])", '', $filename);
-        $filename = mb_ereg_replace("([\.]{2,})", '', $filename);
-        $filename = \strtolower($filename);
-
-        return $filename;
+        return preg_replace("/[^a-z0-9\.]/", "", strtolower($filename));
     }
 
 }
