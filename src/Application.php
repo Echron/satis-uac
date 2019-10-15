@@ -6,33 +6,41 @@ namespace Echron\Satis\UAC;
 use Composer\Satis\Console\Application as SatisConsoleApplication;
 use Echron\Satis\UAC\Model\EndPoint;
 use Echron\Satis\UAC\Model\EndPointUser;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Console\Input\ArrayInput;
 
-class Application
+class Application implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
 
     private $endPoints;
-    private $serveFolder;
 
-    public function __construct(string $serveFolder)
+    private $path;
+    private $serveFolderName;
+
+    public function __construct(string $path, string $serveFolderName = 'pub')
     {
-        $this->serveFolder = $serveFolder;
+        $this->path = $path;
+        $this->serveFolderName = $serveFolderName;
     }
 
-    public function addEndpoint(EndPoint $endPoint)
+    public function addEndpoint(EndPoint $endPoint): void
     {
         //TODO: check if not already exist
         $this->endPoints[$endPoint->name] = $endPoint;
     }
 
-    public function run()
+    public function run(string $updateRepository = null): void
     {
         /**
          * @var string $key
          * @var EndPoint $endPoint
          */
         foreach ($this->endPoints as $endPoint) {
-            echo 'Generate "' . $endPoint->name . '"' . PHP_EOL;
+            if ($this->logger) {
+                $this->logger->info('Generate "' . $endPoint->name . '"');
+            }
             $configFile = $endPoint->configFile;
             $arguments = [
                 'command'    => 'build',
@@ -42,12 +50,23 @@ class Application
                 '--skip-errors' => true,
 
             ];
+            if (!\is_null($updateRepository)) {
+                //TODO: should we validate the givenpackages?
 
-            if (count($endPoint->getPackages()) === 0) {
-                throw new \Exception('No packages defined');
-            }
-            if ($endPoint->getPackages() !== ['*']) {
-                $arguments['packages'] = $endPoint->getPackages();
+                $packages = $endPoint->getPackages();
+
+                foreach ($packages as $package) {
+                    //                    var_dump($package);
+                    //                    die('---');
+                }
+                $arguments['--repository-url'] = $updateRepository;
+            } else {
+                if (count($endPoint->getPackages()) === 0) {
+                    throw new \Exception('No packages defined');
+                }
+                if ($endPoint->getPackages() !== ['*']) {
+                    $arguments['packages'] = $endPoint->getPackages();
+                }
             }
 
             $input = new ArrayInput($arguments);
@@ -56,27 +75,22 @@ class Application
             $application->setCatchExceptions(false);
             $application->setAutoExit(false);
             $application->run($input);
+
             $this->generateHtaccess($endPoint);
         }
         $this->generateTopLevelHtaccess($this->endPoints);
     }
 
-    function getDirectory(EndPoint $endPoint)
+    protected function getDirectory(EndPoint $endPoint): string
     {
-        global $path;
-
-        $pubFolder = $path . DIRECTORY_SEPARATOR . 'pub' . DIRECTORY_SEPARATOR;
-
-        return $pubFolder . $this->sanitizeFilename($endPoint->name);
+        return $this->path . \DIRECTORY_SEPARATOR . $this->serveFolderName . \DIRECTORY_SEPARATOR . $this->sanitizeFilename($endPoint->name);
     }
 
-    function generateHtaccess(EndPoint $endPoint)
+    protected function generateHtaccess(EndPoint $endPoint): void
     {
-        global $path;
-
         $htaccessPath = $this->getDirectory($endPoint) . DIRECTORY_SEPARATOR . '.htaccess';
 
-        $htpasswdPath = $path . DIRECTORY_SEPARATOR . '.htpasswd.' . $this->sanitizeFilename($endPoint->name);
+        $htpasswdPath = $this->path . DIRECTORY_SEPARATOR . '.htpasswd.' . $this->sanitizeFilename($endPoint->name);
 
         $htaccess = 'AuthType Basic' . PHP_EOL;
         $htaccess .= 'AuthName "Restricted Content"' . PHP_EOL;
@@ -99,12 +113,10 @@ class Application
     /**
      * @param EndPoint[] $endPoints
      */
-    function generateTopLevelHtaccess(array $endPoints)
+    protected function generateTopLevelHtaccess(array $endPoints): void
     {
-        global $path;
-
-        $htaccessPath = $path . DIRECTORY_SEPARATOR . 'pub' . DIRECTORY_SEPARATOR . '.htaccess';
-        $htpasswdPath = $path . DIRECTORY_SEPARATOR . '.htpasswd.global';
+        $htaccessPath = $this->path . DIRECTORY_SEPARATOR . $this->serveFolderName . DIRECTORY_SEPARATOR . '.htaccess';
+        $htpasswdPath = $this->path . DIRECTORY_SEPARATOR . '.htpasswd.global';
 
         $htaccess = 'AuthType Basic' . PHP_EOL;
         $htaccess .= 'AuthName "Restricted Content"' . PHP_EOL;
@@ -139,12 +151,12 @@ class Application
         file_put_contents($htpasswdPath, $htpasswd);
     }
 
-    function encryptPassword(string $password): string
+    protected function encryptPassword(string $password): string
     {
         return crypt($password, base64_encode($password));
     }
 
-    function isPublic(EndPoint $endPoint)
+    protected function isPublic(EndPoint $endPoint): bool
     {
         /** @var EndPointUser $user */
         foreach ($endPoint->getUsers() as $user) {
@@ -160,5 +172,4 @@ class Application
     {
         return preg_replace("/[^a-z0-9\.]/", "", strtolower($filename));
     }
-
 }

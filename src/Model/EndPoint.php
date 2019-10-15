@@ -25,7 +25,7 @@ class EndPoint
         $this->packages = [];
     }
 
-    public function addUser(EndPointUser $user)
+    public function addUser(EndPointUser $user): void
     {
         $this->users[] = $user;
     }
@@ -38,7 +38,7 @@ class EndPoint
         return $this->users;
     }
 
-    public function addPackage(string $package, string $version = '*')
+    public function addPackage(string $package, string $version = '*'): void
     {
         $this->packages[] = $package;//[$package] = $version;
     }
