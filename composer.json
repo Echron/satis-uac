@@ -3,7 +3,7 @@
   "description": "Set up a private packagist with user access control",
   "require": {
     "php": "^7.1.0",
-    "composer/satis": "1.x-dev",
+    "composer/satis": "dev-master",
     "ext-json": "*"
   },
   "require-dev": {
