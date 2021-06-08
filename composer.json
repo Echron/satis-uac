@@ -2,8 +2,8 @@
   "name": "echron/packagist-uac",
   "description": "Set up a private packagist with user access control",
   "require": {
-    "php": "^7.1.0",
-    "composer/satis": "dev-master",
+    "php": "^7.2 || ^8.0",
+    "composer/satis": "dev-main",
     "ext-json": "*"
   },
   "require-dev": {
