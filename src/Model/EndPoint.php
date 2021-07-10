@@ -125,7 +125,7 @@ class EndPoint
     {
         $configRepositories = $this->getConfigRepositories();
         foreach ($configRepositories as $configRepository) {
-            if (isset($configRepository['name']) && \strtolower($configRepository['name']) === \strtolower($packageName)) {
+            if (isset($configRepository['name']) && $configRepository['name'] === $packageName) {
                 return $configRepository;
             }
         }
