@@ -14,6 +14,7 @@ class Application implements LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
+    /** @var EndPoint[] */
     private $endPoints;
 
     private $path;
@@ -33,42 +34,62 @@ class Application implements LoggerAwareInterface
 
     public function run(string $updateRepository = null): void
     {
-        /**
-         * @var string $key
-         * @var EndPoint $endPoint
-         */
+
         foreach ($this->endPoints as $endPoint) {
+            try {
+                $this->generateEndpoint($endPoint, $updateRepository);
+            } catch (\Throwable $ex) {
+                if ($this->logger) {
+                    $this->logger->error('Unable to generate endpoint "' . $endPoint->name . '" (' . $ex->getMessage() . ')', ['ex' => $ex]);
+                }
+            }
+
+        }
+        $this->generateTopLevelHtaccess($this->endPoints);
+    }
+
+    protected function generateEndpoint(EndPoint $endPoint, string $repositoryUrl = null): void
+    {
+        $skipEndPointGeneration = false;
+
+
+        $configFile = $endPoint->configFile;
+        $arguments = [
+            'command'    => 'build',
+            'file'       => $configFile,
+            'output-dir' => $this->getDirectory($endPoint),
+
+            '--skip-errors' => true,
+
+        ];
+        if (!\is_null($repositoryUrl)) {
+
+            if (!$endPoint->hasPackageByUrl($repositoryUrl)) {
+                if ($this->logger) {
+                    $this->logger->info('Skip generation of endpoint "' . $endPoint->name . '" (repository "' . $repositoryUrl . '" not activated/found)');
+                }
+                return;
+            }
+
+            $arguments['--repository-url'] = $repositoryUrl;
+        } else {
+            if (count($endPoint->getPackages()) === 0) {
+                throw new \Exception('No packages defined');
+            }
+            if ($endPoint->getPackages() !== ['*']) {
+                $arguments['packages'] = $endPoint->getPackages();
+            }
+        }
+
+
+        if (!$skipEndPointGeneration) {
+
             if ($this->logger) {
-                $this->logger->info('Generate "' . $endPoint->name . '"');
+                $extra = \is_null($repositoryUrl) ? '(all repositories)' : '(single repository: ' . $repositoryUrl . ')';
+                $this->logger->info('Generate endpoint "' . $endPoint->name . '"' . $extra);
+
             }
-            $configFile = $endPoint->configFile;
-            $arguments = [
-                'command'    => 'build',
-                'file'       => $configFile,
-                'output-dir' => $this->getDirectory($endPoint),
-
-                '--skip-errors' => true,
-
-            ];
-            if (!\is_null($updateRepository)) {
-                //TODO: should we validate the givenpackages?
-
-                $packages = $endPoint->getPackages();
-
-                foreach ($packages as $package) {
-                    //                    var_dump($package);
-                    //                    die('---');
-                }
-                $arguments['--repository-url'] = $updateRepository;
-            } else {
-                if (count($endPoint->getPackages()) === 0) {
-                    throw new \Exception('No packages defined');
-                }
-                if ($endPoint->getPackages() !== ['*']) {
-                    $arguments['packages'] = $endPoint->getPackages();
-                }
-            }
-
+            $isValid = $endPoint->validate();
             $input = new ArrayInput($arguments);
 
             $application = new SatisConsoleApplication();
@@ -78,7 +99,6 @@ class Application implements LoggerAwareInterface
 
             $this->generateHtaccess($endPoint);
         }
-        $this->generateTopLevelHtaccess($this->endPoints);
     }
 
     protected function getDirectory(EndPoint $endPoint): string
