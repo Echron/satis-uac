@@ -7,7 +7,7 @@
     "ext-json": "*"
   },
   "require-dev": {
-    "monolog/monolog": "2.0.*"
+    "monolog/monolog": "2.3.*"
   },
   "autoload": {
     "psr-4": {
