@@ -12,9 +12,10 @@ class ConfigParser
 
     public static function parse(
         Application $application,
-        string $appPath,
-        string $configFileName = 'config.json'
-    ): void {
+        string      $appPath,
+        string      $configFileName = 'config.json'
+    ): void
+    {
         $configFilePath = $appPath . \DIRECTORY_SEPARATOR . $configFileName;
         if (!\file_exists($configFilePath)) {
             throw new \Exception('Unable to parse configuration: file does not exist');
@@ -52,7 +53,7 @@ class ConfigParser
     {
         $rawConfig = file_get_contents($configFilePath);
         //TODO: handle when unable to decode content
-        $config = json_decode($rawConfig, true);
+        $config = json_decode($rawConfig, true, 512, JSON_THROW_ON_ERROR);
 
         return $config;
     }

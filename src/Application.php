@@ -15,10 +15,10 @@ class Application implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     /** @var EndPoint[] */
-    private $endPoints;
+    private array $endPoints = [];
 
-    private $path;
-    private $serveFolderName;
+    private string $path;
+    private string $serveFolderName;
 
     public function __construct(string $path, string $serveFolderName = 'pub')
     {
@@ -46,6 +46,33 @@ class Application implements LoggerAwareInterface
 
         }
         $this->generateTopLevelHtaccess($this->endPoints);
+    }
+
+    protected function purgeEndpoint(EndPoint $endPoint, bool $dryRun = false)
+    {
+        $configFile = $endPoint->configFile;
+        $arguments = [
+            'command'    => 'purge',
+            'file'       => $configFile,
+            'output-dir' => $this->getDirectory($endPoint),
+
+
+        ];
+
+        if ($dryRun) {
+            $arguments['dry-run'] = true;
+        }
+        if ($this->logger) {
+            $this->logger->info('Purge endpoint "' . $endPoint->name . '"');
+
+        }
+        $isValid = $endPoint->validate();
+        $input = new ArrayInput($arguments);
+
+        $application = new SatisConsoleApplication();
+        $application->setCatchExceptions(false);
+        $application->setAutoExit(false);
+        $application->run($input);
     }
 
     protected function generateEndpoint(EndPoint $endPoint, string $repositoryUrl = null): void
@@ -98,6 +125,21 @@ class Application implements LoggerAwareInterface
             $application->run($input);
 
             $this->generateHtaccess($endPoint);
+        }
+    }
+
+    public function purge(bool $dryRun = true): void
+    {
+
+        foreach ($this->endPoints as $endPoint) {
+            try {
+                $this->purgeEndpoint($endPoint, $dryRun);
+            } catch (\Throwable $ex) {
+                if ($this->logger) {
+                    $this->logger->error('Unable to generate endpoint "' . $endPoint->name . '" (' . $ex->getMessage() . ')', ['ex' => $ex]);
+                }
+            }
+
         }
     }
 

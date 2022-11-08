@@ -5,10 +5,10 @@ namespace Echron\Satis\UAC\Model;
 
 class EndPoint
 {
-    public $name;
-    public $configFile;
-    private $users;
-    private $packages;
+    public string $name;
+    public string $configFile;
+    private array $users;
+    private array $packages;
 
     public function __construct(string $name, string $configFile)
     {
