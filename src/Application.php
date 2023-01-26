@@ -32,12 +32,29 @@ class Application implements LoggerAwareInterface
         $this->endPoints[$endPoint->name] = $endPoint;
     }
 
-    public function run(string $updateRepository = null): void
+    /**
+     * @param string|string[]|null $repositoriesToUpdate
+     * @return void
+     * @throws \Exception
+     */
+    public function run(string|array $repositoriesToUpdate = null): void
     {
+        if ($repositoriesToUpdate !== null) {
+            if (is_array($repositoriesToUpdate)) {
+
+                $onlyString = array_filter($repositoriesToUpdate, 'is_string');
+                if (!$onlyString) {
+                    throw new \InvalidArgumentException('Invalid update repositories: can only be string');
+                }
+            } else {
+                $repositoriesToUpdate = [$repositoriesToUpdate];
+            }
+        }
+
 
         foreach ($this->endPoints as $endPoint) {
             try {
-                $this->generateEndpoint($endPoint, $updateRepository);
+                $this->generateEndpoint($endPoint, $repositoriesToUpdate);
             } catch (\Throwable $ex) {
                 if ($this->logger) {
                     $this->logger->error('Unable to generate endpoint "' . $endPoint->name . '" (' . $ex->getMessage() . ')', ['ex' => $ex]);
@@ -48,7 +65,7 @@ class Application implements LoggerAwareInterface
         $this->generateTopLevelHtaccess($this->endPoints);
     }
 
-    protected function purgeEndpoint(EndPoint $endPoint, bool $dryRun = false)
+    protected function purgeEndpoint(EndPoint $endPoint, bool $dryRun = false): void
     {
         $configFile = $endPoint->configFile;
         $arguments = [
@@ -75,7 +92,7 @@ class Application implements LoggerAwareInterface
         $application->run($input);
     }
 
-    protected function generateEndpoint(EndPoint $endPoint, string $repositoryUrl = null): void
+    protected function generateEndpoint(EndPoint $endPoint, array|null $repositoryFilters = null): void
     {
         $skipEndPointGeneration = false;
 
@@ -89,16 +106,19 @@ class Application implements LoggerAwareInterface
             '--skip-errors' => true,
 
         ];
-        if (!\is_null($repositoryUrl)) {
+        if ($repositoryFilters !== null && count($repositoryFilters) > 0) {
 
-            if (!$endPoint->hasPackageByUrl($repositoryUrl)) {
-                if ($this->logger) {
-                    $this->logger->info('Skip generation of endpoint "' . $endPoint->name . '" (repository "' . $repositoryUrl . '" not activated/found)');
+            foreach ($repositoryFilters as $repositoryFilter) {
+                if (!$endPoint->hasPackageByUrl($repositoryFilter)) {
+                    if ($this->logger) {
+                        $this->logger->info('Skip generation of endpoint "' . $endPoint->name . '" (repository "' . $repositoryFilter . '" not activated/found)');
+                    }
+                    return;
                 }
-                return;
             }
 
-            $arguments['--repository-url'] = $repositoryUrl;
+
+            $arguments['--repository-url'] = $repositoryFilters;
         } else {
             if (count($endPoint->getPackages()) === 0) {
                 throw new \Exception('No packages defined');
@@ -112,8 +132,8 @@ class Application implements LoggerAwareInterface
         if (!$skipEndPointGeneration) {
 
             if ($this->logger) {
-                $extra = \is_null($repositoryUrl) ? '(all repositories)' : '(single repository: ' . $repositoryUrl . ')';
-                $this->logger->info('Generate endpoint "' . $endPoint->name . '"' . $extra);
+                $extra = \is_null($repositoryFilters) ? '(all repositories)' : '(single repository: ' . implode(', ', $repositoryFilters) . ')';
+                $this->logger->info('Generate endpoint "' . $endPoint->name . '" ' . $extra);
 
             }
             $isValid = $endPoint->validate();
@@ -184,9 +204,9 @@ class Application implements LoggerAwareInterface
         $htaccess .= 'AuthName "Restricted Content"' . PHP_EOL;
         $htaccess .= 'AuthUserFile ' . $htpasswdPath . PHP_EOL;
         $htaccess .= 'Require valid-user' . PHP_EOL;
-        $htaccess .= '' . PHP_EOL;
+        $htaccess .= PHP_EOL;
         $htaccess .= 'RewriteEngine On' . PHP_EOL;
-        $htaccess .= '' . PHP_EOL;
+        $htaccess .= PHP_EOL;
 
         foreach ($endPoints as $endPoint) {
             $users = $endPoint->getUsers();
@@ -195,7 +215,7 @@ class Application implements LoggerAwareInterface
                 $htaccess .= 'RewriteCond %{LA-U:REMOTE_USER} ' . $user->username . PHP_EOL;
                 $htaccess .= 'RewriteCond %{REQUEST_URI} !^/' . $this->sanitizeFilename($endPoint->name) . '/.*' . PHP_EOL;
                 $htaccess .= 'RewriteRule ^(.*)$ /' . $this->sanitizeFilename($endPoint->name) . '/$1  [R,L]' . PHP_EOL;
-                $htaccess .= '' . PHP_EOL;
+                $htaccess .= PHP_EOL;
             }
         }
 
@@ -222,7 +242,7 @@ class Application implements LoggerAwareInterface
     {
         /** @var EndPointUser $user */
         foreach ($endPoint->getUsers() as $user) {
-            if (strtolower($user->username) === 'public' && $user->password === '') {
+            if ($user->password === '' && strtolower($user->username) === 'public') {
                 return true;
             }
         }

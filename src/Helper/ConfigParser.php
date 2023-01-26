@@ -23,6 +23,9 @@ class ConfigParser
 
         $config = self::getConfigFileContent($configFilePath);
 
+        if (!isset($config['endpoints'])) {
+            throw new \Exception('Unable to parse configuration: `endpoints` property missing');
+        }
         $endPointsConfig = $config['endpoints'];
 
         foreach ($endPointsConfig as $endPointConfig) {
@@ -53,9 +56,7 @@ class ConfigParser
     {
         $rawConfig = file_get_contents($configFilePath);
         //TODO: handle when unable to decode content
-        $config = json_decode($rawConfig, true, 512, JSON_THROW_ON_ERROR);
-
-        return $config;
+        return json_decode($rawConfig, true, 512, JSON_THROW_ON_ERROR);
     }
 
 }

@@ -49,9 +49,9 @@ $application->setLogger($logger);
 
 //$application->addEndpoint($companyBEndpoint);
 /**
- * Initialize endpoints for application based on configuration file (see config.json)
+ * Initialize endpoints for application based on configuration file (see example.config.json)
  */
-ConfigParser::parse($application, $path, 'config.json');
+ConfigParser::parse($application, $path, 'example.config.json');
 
 /**
  * Generate all endpoints with all packages
@@ -61,7 +61,7 @@ $application->run();
 /**
  * Generate based on the package url (only the endpoint for which the package is enabled will be generated)
  */
-$application->run('git@bitbucket.org:attlaz/adapter-magento2-php.git');
+$application->run('git@bitbucket.org:vendor/mypackage.git');
 
 
 

@@ -13,10 +13,10 @@ class EndPoint
     public function __construct(string $name, string $configFile)
     {
         if (empty($name)) {
-            throw new \Exception('Invalid endpoint name');
+            throw new \Exception('Invalid endpoint name, can not be empty');
         }
         if (!file_exists($configFile) || !is_readable($configFile)) {
-            throw new \Exception('Invalid endpoint config file');
+            throw new \Exception('Invalid endpoint config file (does not exist or is not readable)');
         }
 
         $this->name = $name;
@@ -58,7 +58,6 @@ class EndPoint
         foreach ($packageRepositories as $packageRepository) {
             if (!isset($packageRepository['name'])) {
                 throw new \Exception('Repository "' . $packageRepository['url'] . '" has no name');
-                return false;
             }
         }
 
@@ -66,7 +65,6 @@ class EndPoint
         // Check if packages are defined
         if (count($this->packages) === 0) {
             throw new \Exception('No packages defined');
-            return false;
         }
         $packages = $this->getPackages();
         if ($packages === ['*']) {
@@ -77,7 +75,6 @@ class EndPoint
             $packageRepository = $this->getPackageRepositoryByName($package);
             if (\is_null($packageRepository)) {
                 throw new \Exception('Package "' . $package . '" not found in repositories');
-                return false;
             }
         }
 

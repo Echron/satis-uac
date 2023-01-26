@@ -19,7 +19,7 @@
     },
     {
       "name": "Endpoint2 (single package available)",
-      "config": "satis.echron.json",
+      "config": "example.packages.json",
       "users": [
         {
           "user": "user3",

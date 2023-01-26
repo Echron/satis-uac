@@ -1,8 +1,9 @@
 {
-  "name": "Private Repository",
+  "name": "echron/myrepository",
   "homepage": "https://packagist.mydomain.com",
   "repositories": [
     {
+      "name": "vendor/mypackage",
       "type": "vcs",
       "url": "git@bitbucket.org:vendor/mypackage.git"
     }
