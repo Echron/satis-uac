@@ -59,10 +59,11 @@ ConfigParser::parse($application, $path, 'example.config.json');
 $application->run();
 
 /**
- * Generate based on the package url (only the endpoint for which the package is enabled will be generated)
+ * Generate based on the package url. Only the endpoint for which the package is enabled will be generated and only those packages passed will get updated. (can be single string or array)
  */
 $application->run('git@bitbucket.org:vendor/mypackage.git');
 
+$application->run(['git@bitbucket.org:vendor/mypackage.git', 'git@bitbucket.org:vendor/mypackage2.git']);
 
 
 
