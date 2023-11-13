@@ -11,7 +11,7 @@ use Echron\Satis\UAC\Helper\ConfigParser;
 $output = [];
 $return_var = 0;
 
-$path = dirname(__FILE__);
+$path = __DIR__;
 
 $application = new Application($path, 'pub');
 
