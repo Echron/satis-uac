@@ -65,12 +65,36 @@ class Application implements LoggerAwareInterface
         $this->generateTopLevelHtaccess($this->endPoints);
     }
 
+    /**
+     * If you choose to archive packages as part of your build, over time you can be left with useless files.
+     * With the purge command, you can delete these files.
+     *
+     * Note: don't do this unless you are certain your projects no longer reference any of these archives in their composer.lock files.
+     *
+     * @param bool $dryRun
+     * @return void
+     */
+    public function purge(bool $dryRun = false): void
+    {
+
+        foreach ($this->endPoints as $endPoint) {
+            try {
+                $this->purgeEndpoint($endPoint, $dryRun);
+            } catch (\Throwable $ex) {
+                if ($this->logger) {
+                    $this->logger->error('Unable to generate endpoint "' . $endPoint->name . '" (' . $ex->getMessage() . ')', ['ex' => $ex]);
+                }
+            }
+
+        }
+    }
+
     protected function purgeEndpoint(EndPoint $endPoint, bool $dryRun = false): void
     {
         $configFile = $endPoint->configFile;
         $arguments = [
-            'command'    => 'purge',
-            'file'       => $configFile,
+            'command' => 'purge',
+            'file' => $configFile,
             'output-dir' => $this->getDirectory($endPoint),
 
 
@@ -99,8 +123,8 @@ class Application implements LoggerAwareInterface
 
         $configFile = $endPoint->configFile;
         $arguments = [
-            'command'    => 'build',
-            'file'       => $configFile,
+            'command' => 'build',
+            'file' => $configFile,
             'output-dir' => $this->getDirectory($endPoint),
 
             '--skip-errors' => true,
@@ -145,21 +169,6 @@ class Application implements LoggerAwareInterface
             $application->run($input);
 
             $this->generateHtaccess($endPoint);
-        }
-    }
-
-    public function purge(bool $dryRun = true): void
-    {
-
-        foreach ($this->endPoints as $endPoint) {
-            try {
-                $this->purgeEndpoint($endPoint, $dryRun);
-            } catch (\Throwable $ex) {
-                if ($this->logger) {
-                    $this->logger->error('Unable to generate endpoint "' . $endPoint->name . '" (' . $ex->getMessage() . ')', ['ex' => $ex]);
-                }
-            }
-
         }
     }
 
