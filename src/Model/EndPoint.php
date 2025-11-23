@@ -9,6 +9,7 @@ class EndPoint
     public string $configFile;
     private array $users;
     private array $packages;
+    private array|null $configFileContent = null;
 
     public function __construct(string $name, string $configFile)
     {
@@ -40,6 +41,9 @@ class EndPoint
 
     public function addPackage(string $package, string $version = '*'): void
     {
+        if (in_array($package, $this->packages, true)) {
+            echo 'Package `' . $package . '` already added to endpoint ' . $this->name . PHP_EOL;
+        }
         $this->packages[] = $package;//[$package] = $version;
     }
 
@@ -129,9 +133,6 @@ class EndPoint
 
         return null;
     }
-
-
-    private $configFileContent = null;
 
     private function getConfigRepositories(): array
     {

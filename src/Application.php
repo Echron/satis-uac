@@ -37,7 +37,7 @@ class Application implements LoggerAwareInterface
      * @return void
      * @throws \Exception
      */
-    public function run(string|array $repositoriesToUpdate = null): void
+    public function run(string|array|null $repositoriesToUpdate = null): void
     {
         if ($repositoriesToUpdate !== null) {
             if (is_array($repositoriesToUpdate)) {
