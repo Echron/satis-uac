@@ -5,8 +5,8 @@ namespace Echron\Satis\UAC\Model;
 
 class EndPointUser
 {
-    public $username;
-    public $password;
+    public string $username;
+    public string $password;
 
     public function __construct(string $username, string $password)
     {

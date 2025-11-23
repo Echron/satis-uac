@@ -1,12 +1,30 @@
 {
   "name": "echron/packagist-uac",
   "description": "Set up a private packagist with user access control",
+  "keywords": [
+    "package",
+    "repository",
+    "generator",
+    "static",
+    "composer"
+  ],
   "require": {
-    "composer/satis": "^1.0.0"
+    "php": "^8.2",
+    "composer/satis": "dev-main",
+    "ext-json": "*"
+  },
+  "require-dev": {
+    "monolog/monolog": "^3.9.0"
   },
   "autoload": {
     "psr-4": {
       "Echron\\Satis\\UAC\\": "src/"
+    }
+  },
+  "license": "MIT",
+  "config": {
+    "allow-plugins": {
+      "composer/satis": true
     }
   }
 }

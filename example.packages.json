@@ -1,8 +1,10 @@
 {
-  "name": "Private Repository",
+  "$schema": "https://raw.githubusercontent.com/composer/satis/refs/heads/main/res/satis-schema.json",
+  "name": "echron/myrepository",
   "homepage": "https://packagist.mydomain.com",
   "repositories": [
     {
+      "name": "vendor/mypackage",
       "type": "vcs",
       "url": "git@bitbucket.org:vendor/mypackage.git"
     }

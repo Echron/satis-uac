@@ -1,0 +1,34 @@
+{
+  "endpoints": [
+    {
+      "name": "Endpoint1 (all packages available)",
+      "config": "example.packages.json",
+      "users": [
+        {
+          "user": "user1",
+          "key": "secretpassword1"
+        },
+        {
+          "user": "user2",
+          "key": "secretpassword2"
+        }
+      ],
+      "packages": [
+        "*"
+      ]
+    },
+    {
+      "name": "Endpoint2 (single package available)",
+      "config": "example.packages.json",
+      "users": [
+        {
+          "user": "user3",
+          "key": "secretpassword3"
+        }
+      ],
+      "packages": [
+        "vendor/mypackage"
+      ]
+    }
+  ]
+}
