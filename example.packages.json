@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/composer/satis/refs/heads/main/res/satis-schema.json",
   "name": "echron/myrepository",
   "homepage": "https://packagist.mydomain.com",
   "repositories": [
